@@ -87,6 +87,12 @@ namespace Ambc.Api.Migrations
                     b.Property<Guid?>("PlayoffSeriesId")
                         .HasColumnType("uuid");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bytea");
+
                     b.Property<Guid>("SeasonId")
                         .HasColumnType("uuid");
 
@@ -232,6 +238,12 @@ namespace Ambc.Api.Migrations
 
                     b.Property<string>("ImagenUrl")
                         .HasColumnType("text");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bytea");
 
                     b.HasKey("Id");
 

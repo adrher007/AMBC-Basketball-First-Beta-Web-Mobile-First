@@ -123,6 +123,10 @@ public class Game
     public int MarcadorVisitante { get; set; }
     public Guid? GanadorId { get; set; }
     public int Semana { get; set; }                 // semana de planificación (1..N desde FechaInicio)
+
+    // 1.3 — Token de concurrencia (columna bytea RowVersion)
+    [Timestamp]
+    public byte[] RowVersion { get; set; } = Array.Empty<byte>();
 }
 
 /// <summary>
@@ -150,6 +154,10 @@ public class Planilla
     public string? DatosExtraidosJson { get; set; }  // JSONB
     public string? DatosCorregidosJson { get; set; } // JSONB
     public Guid? ConfirmadaPor { get; set; }
+
+    // 1.3 — Token de concurrencia (columna bytea RowVersion)
+    [Timestamp]
+    public byte[] RowVersion { get; set; } = Array.Empty<byte>();
 }
 
 public class PlayerGameStats

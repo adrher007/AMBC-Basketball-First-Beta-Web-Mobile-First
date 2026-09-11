@@ -167,7 +167,15 @@ public class AdminGamesController : ControllerBase
                 AssignedBy = adminId ?? Guid.Empty,
             });
         }
-        await _db.SaveChangesAsync();
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // 1.3 — Otro admin modificó las asignaciones entretanto
+            return Conflict(new { error = "Los árbitros del partido fueron modificados por otra sesión. Recarga e intenta de nuevo." });
+        }
 
         if (nuevos.Count > 0)
             await NotificarArbitros(game, nuevos, adminId);
@@ -186,7 +194,15 @@ public class AdminGamesController : ControllerBase
 
         game.Fecha = dto.Fecha;
         game.Hora = dto.Hora;
-        await _db.SaveChangesAsync();
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // 1.3 — Otro admin modificó el partido entretanto
+            return Conflict(new { error = "El partido fue modificado por otra sesión. Recarga e intenta de nuevo." });
+        }
         return NoContent();
     }
 
@@ -212,7 +228,15 @@ public class AdminGamesController : ControllerBase
             : game.AwayTeamId;
         game.Estado = GameEstado.FINISHED;
 
-        await _db.SaveChangesAsync();
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // 1.3 — Otro admin/árbitro modificó el partido entretanto
+            return Conflict(new { error = "El partido fue modificado por otra sesión. Recarga e intenta de nuevo." });
+        }
 
         // Fase 9: recalcular standings automáticamente (solo fase regular)
         if (game.PlayoffSeriesId is null)
