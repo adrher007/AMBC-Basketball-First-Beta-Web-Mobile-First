@@ -6,7 +6,9 @@ namespace Ambc.Api.Data;
 
 public class AmbcDbContext : DbContext
 {
-    public AmbcDbContext(DbContextOptions<AmbcDbContext> options) : base(options) { }
+    // DbContextOptions (no genérico) para que los proyectos de test puedan derivar
+    // el contexto sin chocar con la validación de tipo de EF Core.
+    public AmbcDbContext(DbContextOptions options) : base(options) { }
 
     public DbSet<User> Users => Set<User>();
     public DbSet<Season> Seasons => Set<Season>();
