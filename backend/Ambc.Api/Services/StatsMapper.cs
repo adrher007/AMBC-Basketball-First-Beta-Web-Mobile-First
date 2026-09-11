@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Ambc.Api.Models;
@@ -12,6 +13,11 @@ namespace Ambc.Api.Services;
 /// </summary>
 public static class StatsMapper
 {
+    private static readonly JsonSerializerOptions JsonOpts = new()
+    {
+        PropertyNameCaseInsensitive = true,
+    };
+
     private class JugadorDto
     {
         [JsonPropertyName("numero")] public int? Numero { get; set; }
@@ -49,8 +55,7 @@ public static class StatsMapper
         PlanillaJson? data;
         try
         {
-            data = JsonSerializer.Deserialize<PlanillaJson>(datosCorregidosJson,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            data = JsonSerializer.Deserialize<PlanillaJson>(datosCorregidosJson, JsonOpts);
         }
         catch
         {
@@ -99,6 +104,17 @@ public static class StatsMapper
                 int dosP = 0, tresP = 0, ft = 0;
                 if (j.Pts is not null)
                 {
+                    // 1.4 — Si además vienen componentes, deben coincidir con los puntos declarados
+                    if (j.DosP is not null || j.TresP is not null || j.Ft is not null)
+                    {
+                        dosP = j.DosP ?? 0;
+                        tresP = j.TresP ?? 0;
+                        ft = j.Ft ?? 0;
+                        var esperado = dosP * 2 + tresP * 3 + ft;
+                        if (esperado != j.Pts.Value)
+                            throw new ValidationException(
+                                $"Puntos inconsistentes en #{j.Numero} ({equipoNombre}): declarado {j.Pts.Value} ≠ 2P×2 + 3P×3 + FT = {esperado}.");
+                    }
                     pts = j.Pts.Value;
                 }
                 else
@@ -139,5 +155,30 @@ public static class StatsMapper
         db.PlayerGameStats.AddRange(stats);
         await db.SaveChangesAsync();
         return (stats.Count, "");
+    }
+
+    /// <summary>
+    /// 1.5 — Suma los puntos declarados por equipo (para validar contra el marcador).
+    /// Devuelve null si el JSON no es válido.
+    /// </summary>
+    public static (int Local, int Visitante)? SumarPuntos(string? datosCorregidosJson)
+    {
+        if (string.IsNullOrWhiteSpace(datosCorregidosJson)) return null;
+
+        PlanillaJson? data;
+        try
+        {
+            data = JsonSerializer.Deserialize<PlanillaJson>(datosCorregidosJson, JsonOpts);
+        }
+        catch
+        {
+            return null;
+        }
+        if (data is null) return null;
+
+        static int Sumar(List<JugadorDto>? jugadores) =>
+            jugadores?.Sum(j => j.Pts ?? ((j.DosP ?? 0) * 2 + (j.TresP ?? 0) * 3 + (j.Ft ?? 0))) ?? 0;
+
+        return (Sumar(data.JugadoresLocal), Sumar(data.JugadoresVisitante));
     }
 }

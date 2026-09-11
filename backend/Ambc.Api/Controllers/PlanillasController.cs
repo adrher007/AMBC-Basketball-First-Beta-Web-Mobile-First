@@ -282,10 +282,28 @@ public class PlanillasController : ControllerBase
         // Se hace ANTES de marcar confirmada: si falla el mapeo, la planilla no queda inmutable.
         if (!string.IsNullOrWhiteSpace(dto.DatosCorregidosJson))
         {
-            var (escritos, err) = await StatsMapper.EscribirStats(
-                _db, game.SeasonId, game.Id, game.HomeTeamId, game.AwayTeamId, dto.DatosCorregidosJson);
-            if (!string.IsNullOrEmpty(err))
-                return BadRequest(new { error = err });
+            // 1.5 — La suma de puntos por equipo debe coincidir con el marcador declarado
+            var suma = StatsMapper.SumarPuntos(dto.DatosCorregidosJson);
+            if (suma is not null)
+            {
+                if (suma.Value.Local != dto.MarcadorLocal)
+                    return BadRequest(new { error = $"Suma de puntos local ({suma.Value.Local}) ≠ marcador ({dto.MarcadorLocal})." });
+                if (suma.Value.Visitante != dto.MarcadorVisitante)
+                    return BadRequest(new { error = $"Suma de puntos visitante ({suma.Value.Visitante}) ≠ marcador ({dto.MarcadorVisitante})." });
+            }
+
+            try
+            {
+                var (escritos, err) = await StatsMapper.EscribirStats(
+                    _db, game.SeasonId, game.Id, game.HomeTeamId, game.AwayTeamId, dto.DatosCorregidosJson);
+                if (!string.IsNullOrEmpty(err))
+                    return BadRequest(new { error = err });
+            }
+            catch (System.ComponentModel.DataAnnotations.ValidationException ex)
+            {
+                // 1.4 — Pts inconsistente con sus componentes → 400
+                return BadRequest(new { error = ex.Message });
+            }
         }
 
         // Marcar confirmada (inmutable)
