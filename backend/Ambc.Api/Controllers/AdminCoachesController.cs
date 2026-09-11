@@ -44,9 +44,9 @@ public class AdminCoachesController : ControllerBase
         if (username.Length == 0)
             return BadRequest(new { error = "Nombre inválido." });
 
-        // ¿Username ya existe?
-        if (await _db.Users.AnyAsync(u => u.Username == username))
-            return BadRequest(new { error = $"El usuario '{username}' ya existe." });
+        // 3.2 — Si el username existe, se sufija: juanperez → juanperez2 → juanperez3
+        username = await UsernameNormalizer.UnicoAsync(
+            username, u => _db.Users.AnyAsync(x => x.Username == u));
 
         // ¿Ya hay un coach para ese (team, season)?
         if (await _db.Coaches.AnyAsync(c => c.TeamId == dto.TeamId && c.SeasonId == dto.SeasonId))
