@@ -23,8 +23,17 @@ public static class StandingsCalculator
             .Select(t => t.Id)
             .ToListAsync();
 
-        // Acumulan partido contra partido
+        // Acumulan partido contra partido.
+        // Opción A: si un partido FINISHED involucra un equipo que no está en el
+        // diccionario (p. ej. sin roster en la temporada), se inicializa con 0 stats
+        // en lugar de lanzar KeyNotFoundException y romper todo el cálculo.
         var stats = teams.ToDictionary(t => t, _ => new Acc());
+
+        foreach (var g in games)
+        {
+            if (!stats.ContainsKey(g.HomeTeamId)) stats[g.HomeTeamId] = new Acc();
+            if (!stats.ContainsKey(g.AwayTeamId)) stats[g.AwayTeamId] = new Acc();
+        }
 
         foreach (var g in games)
         {
