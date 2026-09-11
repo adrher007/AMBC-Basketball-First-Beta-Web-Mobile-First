@@ -19,16 +19,14 @@ public static class NotificacionesService
     public const string TipoPartidoHoy = "PARTIDO_HOY";
     public const string TipoAsignacion = "ASIGNACION";
 
-    /// <summary>Notifica a cada árbitro su asignación (individual) — operativa.</summary>
+    /// <summary>
+    /// Notifica a cada árbitro su asignación (individual) — operativa.
+    /// Idempotente POR ÁRBITRO: en una re-asignación solo reciben notificación los nuevos.
+    /// </summary>
     public static async Task<int> NotificarAsignacion(
         AmbcDbContext db, Game game, List<Guid> refereeIds, Guid? adminId)
     {
         if (refereeIds.Count == 0) return 0;
-
-        // Idempotencia: si ya se notificó la asignación de este partido, no repetir
-        var yaNotificado = await db.NotificationEvents
-            .AnyAsync(ne => ne.GameId == game.Id && ne.Tipo == TipoAsignacion && ne.Fecha == game.Fecha);
-        if (yaNotificado) return 0;
 
         var equipos = await db.Teams.ToDictionaryAsync(t => t.Id, t => t.Nombre);
         var local = equipos.GetValueOrDefault(game.HomeTeamId, "Equipo A");
@@ -37,37 +35,47 @@ public static class NotificacionesService
         var mensaje = $"Nuevo partido asignado. Se te ha asignado como árbitro para el partido {local} vs {visitante}. " +
                       $"{game.Fecha:dd/MM/yyyy} — {game.Hora}";
 
-        var userIds = await db.Referees
-            .Where(r => refereeIds.Contains(r.Id))
-            .Select(r => r.UserId)
+        // Árbitros que ya tienen evento ASIGNACION para este partido/fecha
+        var yaNotificados = await db.NotificationEvents
+            .Where(ne => ne.GameId == game.Id && ne.Tipo == TipoAsignacion && ne.Fecha == game.Fecha)
+            .Select(ne => ne.RefereeId)
             .ToListAsync();
 
-        Guid? primera = null;
-        foreach (var userId in userIds)
+        var pendientes = refereeIds.Where(r => !yaNotificados.Contains(r)).Distinct().ToList();
+        if (pendientes.Count == 0) return 0;
+
+        var refs = await db.Referees
+            .Where(r => pendientes.Contains(r.Id))
+            .Select(r => new { r.Id, r.UserId })
+            .ToListAsync();
+
+        var creadas = 0;
+        foreach (var r in refs)
         {
             var n = new Notification
             {
                 Mensaje = mensaje,
-                Destinatarios = $"USER:{userId}",
+                Destinatarios = $"USER:{r.UserId}",
                 CreadoPor = adminId ?? Guid.Empty,
                 Activo = true,
                 CreadoEn = DateTime.UtcNow,
             };
             db.Notifications.Add(n);
             await db.SaveChangesAsync();
-            primera ??= n.Id;
+
+            db.NotificationEvents.Add(new NotificationEvent
+            {
+                GameId = game.Id,
+                Tipo = TipoAsignacion,
+                Fecha = game.Fecha,
+                RefereeId = r.Id,
+                NotificationId = n.Id,
+            });
+            await db.SaveChangesAsync();
+            creadas++;
         }
 
-        db.NotificationEvents.Add(new NotificationEvent
-        {
-            GameId = game.Id,
-            Tipo = TipoAsignacion,
-            Fecha = game.Fecha,
-            NotificationId = primera,
-        });
-        await db.SaveChangesAsync();
-
-        return userIds.Count;
+        return creadas;
     }
 
     /// <summary>
@@ -96,7 +104,8 @@ public static class NotificacionesService
         foreach (var g in juegos)
         {
             var yaExiste = await db.NotificationEvents
-                .AnyAsync(ne => ne.GameId == g.Id && ne.Tipo == TipoPartidoHoy && ne.Fecha == g.Fecha);
+                .AnyAsync(ne => ne.GameId == g.Id && ne.Tipo == TipoPartidoHoy
+                    && ne.Fecha == g.Fecha && ne.RefereeId == Guid.Empty);
             if (yaExiste) continue;
 
             var local = equipos.GetValueOrDefault(g.HomeTeamId, "?");

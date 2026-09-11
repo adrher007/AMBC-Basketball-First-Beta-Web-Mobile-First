@@ -48,9 +48,9 @@ public class AmbcDbContext : DbContext
         m.Entity<GameReferee>()
             .HasIndex(gr => new { gr.GameId, gr.RefereeId }).IsUnique();
 
-        // Idempotencia de notificaciones: game + tipo de evento + fecha
+        // Idempotencia de notificaciones: game + tipo de evento + fecha + árbitro
         m.Entity<NotificationEvent>()
-            .HasIndex(ne => new { ne.GameId, ne.Tipo, ne.Fecha }).IsUnique();
+            .HasIndex(ne => new { ne.GameId, ne.Tipo, ne.Fecha, ne.RefereeId }).IsUnique();
 
         m.Entity<Planilla>()
             .HasIndex(p => p.GameId).IsUnique();

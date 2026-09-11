@@ -176,13 +176,16 @@ namespace Ambc.Api.Migrations
                     b.Property<Guid?>("NotificationId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("RefereeId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Tipo")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("GameId", "Tipo", "Fecha")
+                    b.HasIndex("GameId", "Tipo", "Fecha", "RefereeId")
                         .IsUnique();
 
                     b.ToTable("NotificationEvents");

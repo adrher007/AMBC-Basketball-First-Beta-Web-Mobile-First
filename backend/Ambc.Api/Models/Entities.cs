@@ -131,8 +131,10 @@ public class Game
 
 /// <summary>
 /// Registro idempotente de eventos notificados.
-/// UNIQUE(game_id, tipo, fecha) evita notificaciones duplicadas ante
+/// UNIQUE(game_id, tipo, fecha, referee_id) evita notificaciones duplicadas ante
 /// reinicios del servidor o ejecuciones repetidas del proceso.
+///  - PARTIDO_HOY → RefereeId = Guid.Empty (un evento por partido y fecha)
+///  - ASIGNACION  → un evento por árbitro (permite notificar solo a los nuevos en re-asignaciones)
 /// </summary>
 public class NotificationEvent
 {
@@ -140,6 +142,7 @@ public class NotificationEvent
     public Guid GameId { get; set; }
     public string Tipo { get; set; } = "";          // PARTIDO_HOY | ASIGNACION
     public DateOnly Fecha { get; set; }             // fecha del Game sobre la que se notificó
+    public Guid RefereeId { get; set; } = Guid.Empty; // Guid.Empty para eventos sin árbitro
     public Guid? NotificationId { get; set; }
     public DateTime CreadoEn { get; set; } = DateTime.UtcNow;
 }

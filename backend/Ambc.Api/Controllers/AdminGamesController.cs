@@ -143,7 +143,7 @@ public class AdminGamesController : ControllerBase
         var game = await _db.Games.FindAsync(id);
         if (game is null) return NotFound(new { error = "Partido no encontrado." });
 
-        var val = await ValidarArbitros(dto.ArbitroIds);
+        var val = await ValidarArbitros(dto.Efectivos);
         if (val.error is not null) return BadRequest(new { error = val.error });
 
         var adminId = GetUserId();
@@ -321,7 +321,13 @@ public class CreateGameDto
 
 public class SetArbitrosDto
 {
+    // Contrato vigente del frontend
     public List<Guid>? ArbitroIds { get; set; }
+    // Alias opcional (mismo contrato, nombre alternativo admitido)
+    public List<Guid>? RefereeIds { get; set; }
+
+    /// <summary>Ids efectivos: 'arbitroIds' gana si vienen ambos.</summary>
+    public List<Guid>? Efectivos => ArbitroIds ?? RefereeIds;
 }
 
 public class ArbitroAsignadoDto
