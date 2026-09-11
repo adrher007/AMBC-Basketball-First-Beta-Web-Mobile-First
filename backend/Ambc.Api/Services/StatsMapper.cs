@@ -33,8 +33,22 @@ public static class StatsMapper
 
     private class PlanillaJson
     {
+        // 3.1 — Versión del esquema del JSON (ausente = 1)
+        [JsonPropertyName("schemaVersion")] public int? SchemaVersion { get; set; }
         [JsonPropertyName("jugadores_local")] public List<JugadorDto>? JugadoresLocal { get; set; }
         [JsonPropertyName("jugadores_visitante")] public List<JugadorDto>? JugadoresVisitante { get; set; }
+    }
+
+    /// <summary>Versión de esquema soportada por este backend.</summary>
+    public const int SchemaVersionActual = 1;
+
+    /// <summary>3.1 — Valida la versión de esquema. Devuelve error si es más nueva que la soportada.</summary>
+    private static string? ValidarSchema(int? version)
+    {
+        var v = version ?? SchemaVersionActual;   // ausente → 1
+        return v > SchemaVersionActual
+            ? $"schemaVersion {v} no soportada por este backend (máximo {SchemaVersionActual}). Actualiza el servidor."
+            : null;
     }
 
     /// <summary>
@@ -64,6 +78,11 @@ public static class StatsMapper
 
         if (data is null)
             return (0, "JSON de datos corregidos inválido.");
+
+        // 3.1 — Rechazar esquemas más nuevos que los soportados
+        var errSchema = ValidarSchema(data.SchemaVersion);
+        if (errSchema is not null)
+            return (0, errSchema);
 
         // Roster de la season
         var roster = await db.Rosters
@@ -175,6 +194,9 @@ public static class StatsMapper
             return null;
         }
         if (data is null) return null;
+
+        // 3.1 — Esquema no soportado: no hay sumas fiables que comparar
+        if (ValidarSchema(data.SchemaVersion) is not null) return null;
 
         static int Sumar(List<JugadorDto>? jugadores) =>
             jugadores?.Sum(j => j.Pts ?? ((j.DosP ?? 0) * 2 + (j.TresP ?? 0) * 3 + (j.Ft ?? 0))) ?? 0;

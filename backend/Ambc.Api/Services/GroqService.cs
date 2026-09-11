@@ -64,6 +64,7 @@ public class GroqService
 
             FORMATO DE SALIDA (JSON):
             {
+              "schemaVersion": 1,
               "match": { "category": "string", "branch": "string", "date": { "day": int, "month": int, "year": int, "full": "DD-MM-AA" } },
               "teams": {
                 "A": { "name": "string", "players": [{"number": int|null, "name": "string"}] },
@@ -96,7 +97,7 @@ public class GroqService
             messages.Add(new
             {
                 role = "assistant",
-                content = """{"match":{"category":"Honor Masculino","branch":"Masculino","date":{"day":25,"month":8,"year":26,"full":"25-08-26"}},"teams":{"A":{"name":"Equipo A","players":[{"number":7,"name":"Juan Perez"}]},"B":{"name":"Equipo B","players":[{"number":12,"name":"Carlo Mendez"}]}},"scores":{"execution":{"cells":[]},"quarters":{"1":{"A":20,"B":15},"2":{"A":18,"B":19},"3":{"A":22,"B":21},"4":{"A":19,"B":18},"overtime":{"A":null,"B":null}},"final":{"A":79,"B":73}}}""",
+                content = """{"schemaVersion":1,"match":{"category":"Honor Masculino","branch":"Masculino","date":{"day":25,"month":8,"year":26,"full":"25-08-26"}},"teams":{"A":{"name":"Equipo A","players":[{"number":7,"name":"Juan Perez"}]},"B":{"name":"Equipo B","players":[{"number":12,"name":"Carlo Mendez"}]}},"scores":{"execution":{"cells":[]},"quarters":{"1":{"A":20,"B":15},"2":{"A":18,"B":19},"3":{"A":22,"B":21},"4":{"A":19,"B":18},"overtime":{"A":null,"B":null}},"final":{"A":79,"B":73}}}""",
             });
         }
 

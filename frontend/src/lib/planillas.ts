@@ -51,11 +51,33 @@ export const subirImagenPlanilla = (id: string, file: File) => {
 export const getPlanilla = (id: string) =>
   api.get<Planilla>(`/planillas/${id}`).then((r) => r.data);
 
+/** 3.1 — Versión del esquema del JSON de corrección. */
+export const SCHEMA_VERSION = 1;
+
+export interface JugadorCorregido {
+  numero: number;
+  nombre: string;
+  apellido: string;
+  /** Puntos totales del jugador (la planilla AMBC registra solo puntos). */
+  pts?: number;
+}
+
+export interface PlanillaDatosCorregidos {
+  schemaVersion: number;
+  jugadores_local: JugadorCorregido[];
+  jugadores_visitante: JugadorCorregido[];
+}
+
 export const confirmarPlanilla = (
   id: string,
   marcadorLocal: number,
   marcadorVisitante: number,
+  datos?: PlanillaDatosCorregidos,
 ) =>
   api
-    .post(`/planillas/${id}/confirmar`, { marcadorLocal, marcadorVisitante })
+    .post(`/planillas/${id}/confirmar`, {
+      marcadorLocal,
+      marcadorVisitante,
+      ...(datos ? { datosCorregidosJson: JSON.stringify(datos) } : {}),
+    })
     .then((r) => r.data);
