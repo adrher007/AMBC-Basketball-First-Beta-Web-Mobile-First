@@ -43,29 +43,49 @@ public static class StandingsCalculator
 
         var sorted = SortTeams(teams, games, stats, Pts);
 
-        // Reemplaza la tabla standings (solo lectura, la escribe el backend)
-        var old = await db.Standings.Where(s => s.SeasonId == seasonId).ToListAsync();
-        db.Standings.RemoveRange(old);
-        await db.SaveChangesAsync();
+        // Reemplaza la tabla standings en UNA sola transacción: si algo falla
+        // no puede quedar una tabla a medias (borrada sin repoblar).
+        // Si ya hay una transacción ambiente (p. ej. Confirmar de planilla),
+        // se participa de ella y el commit lo hace el llamador.
+        var txExistente = db.Database.CurrentTransaction;
+        var tx = txExistente is null ? await db.Database.BeginTransactionAsync() : null;
 
-        for (var i = 0; i < sorted.Count; i++)
+        try
         {
-            var id = sorted[i];
-            var a = stats[id];
-            db.Standings.Add(new Standing
+            var old = await db.Standings.Where(s => s.SeasonId == seasonId).ToListAsync();
+            db.Standings.RemoveRange(old);
+            await db.SaveChangesAsync();
+
+            for (var i = 0; i < sorted.Count; i++)
             {
-                SeasonId = seasonId,
-                TeamId = id,
-                Pj = a.Pj,
-                Victorias = a.V,
-                Derrotas = a.D,
-                Pf = a.Pf,
-                Pc = a.Pc,
-                Diff = a.Pf - a.Pc,
-                Posicion = i + 1,
-            });
+                var id = sorted[i];
+                var a = stats[id];
+                db.Standings.Add(new Standing
+                {
+                    SeasonId = seasonId,
+                    TeamId = id,
+                    Pj = a.Pj,
+                    Victorias = a.V,
+                    Derrotas = a.D,
+                    Pf = a.Pf,
+                    Pc = a.Pc,
+                    Diff = a.Pf - a.Pc,
+                    Posicion = i + 1,
+                });
+            }
+            await db.SaveChangesAsync();
+
+            if (tx is not null) await tx.CommitAsync();
         }
-        await db.SaveChangesAsync();
+        catch
+        {
+            if (tx is not null) await tx.RollbackAsync();
+            throw;
+        }
+        finally
+        {
+            if (tx is not null) await tx.DisposeAsync();
+        }
     }
 
     private sealed class Acc
