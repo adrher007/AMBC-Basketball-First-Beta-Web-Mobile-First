@@ -278,11 +278,9 @@ public class PlanillasController : ControllerBase
 
         var userId = GetUserId();
 
-        // ===== Validar y escribir stats (si vienen datos corregidos) =====
-        // Se hace ANTES de marcar confirmada: si falla el mapeo, la planilla no queda inmutable.
+        // 1.5 — La suma de puntos por equipo debe coincidir con el marcador declarado
         if (!string.IsNullOrWhiteSpace(dto.DatosCorregidosJson))
         {
-            // 1.5 — La suma de puntos por equipo debe coincidir con el marcador declarado
             var suma = StatsMapper.SumarPuntos(dto.DatosCorregidosJson);
             if (suma is not null)
             {
@@ -291,39 +289,66 @@ public class PlanillasController : ControllerBase
                 if (suma.Value.Visitante != dto.MarcadorVisitante)
                     return BadRequest(new { error = $"Suma de puntos visitante ({suma.Value.Visitante}) ≠ marcador ({dto.MarcadorVisitante})." });
             }
-
-            try
-            {
-                var (escritos, err) = await StatsMapper.EscribirStats(
-                    _db, game.SeasonId, game.Id, game.HomeTeamId, game.AwayTeamId, dto.DatosCorregidosJson);
-                if (!string.IsNullOrEmpty(err))
-                    return BadRequest(new { error = err });
-            }
-            catch (System.ComponentModel.DataAnnotations.ValidationException ex)
-            {
-                // 1.4 — Pts inconsistente con sus componentes → 400
-                return BadRequest(new { error = ex.Message });
-            }
         }
 
-        // Marcar confirmada (inmutable)
-        planilla.Estado = PlanillaEstado.CONFIRMADA;
-        planilla.DatosCorregidosJson = dto.DatosCorregidosJson;
-        planilla.ConfirmadaPor = userId;
-        await _db.SaveChangesAsync();
+        // 1.2 — Opción A: transacción atómica, si playoffs falla se cancela la confirmación entera.
+        // Todo (stats + planilla CONFIRMADA + partido FINISHED + standings/playoffs) es un
+        // solo commit: o queda todo consistente, o no queda nada.
+        await using var tx = await _db.Database.BeginTransactionAsync();
+        try
+        {
+            // ===== Escribir stats (si vienen datos corregidos) =====
+            if (!string.IsNullOrWhiteSpace(dto.DatosCorregidosJson))
+            {
+                var (_, err) = await StatsMapper.EscribirStats(
+                    _db, game.SeasonId, game.Id, game.HomeTeamId, game.AwayTeamId, dto.DatosCorregidosJson);
+                if (!string.IsNullOrEmpty(err))
+                {
+                    await tx.RollbackAsync();
+                    return BadRequest(new { error = err });
+                }
+            }
 
-        // Registrar resultado en el partido
-        game.MarcadorLocal = dto.MarcadorLocal;
-        game.MarcadorVisitante = dto.MarcadorVisitante;
-        game.GanadorId = dto.MarcadorLocal > dto.MarcadorVisitante ? game.HomeTeamId : game.AwayTeamId;
-        game.Estado = GameEstado.FINISHED;
-        await _db.SaveChangesAsync();
+            // Marcar confirmada (inmutable)
+            planilla.Estado = PlanillaEstado.CONFIRMADA;
+            planilla.DatosCorregidosJson = dto.DatosCorregidosJson;
+            planilla.ConfirmadaPor = userId;
+            await _db.SaveChangesAsync();
 
-        // Recalcular standings (fase regular) o avanzar playoffs
-        if (game.PlayoffSeriesId is null)
-            await StandingsCalculator.Recalcular(_db, game.SeasonId);
-        else
-            await PlayoffService.TrasResultado(_db, game.SeasonId, game.PlayoffSeriesId.Value);
+            // Registrar resultado en el partido
+            game.MarcadorLocal = dto.MarcadorLocal;
+            game.MarcadorVisitante = dto.MarcadorVisitante;
+            game.GanadorId = dto.MarcadorLocal > dto.MarcadorVisitante ? game.HomeTeamId : game.AwayTeamId;
+            game.Estado = GameEstado.FINISHED;
+            await _db.SaveChangesAsync();
+
+            // Recalcular standings (fase regular) o avanzar playoffs — dentro de la misma tx
+            if (game.PlayoffSeriesId is null)
+                await StandingsCalculator.Recalcular(_db, game.SeasonId);
+            else
+                await PlayoffService.TrasResultado(_db, game.SeasonId, game.PlayoffSeriesId.Value);
+
+            await tx.CommitAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // 1.3 — Otra sesión modificó la planilla o el partido mientras se confirmaba
+            await tx.RollbackAsync();
+            return Conflict(new { error = "La planilla o el partido fueron modificados por otra sesión. Recarga e intenta de nuevo." });
+        }
+        catch (System.ComponentModel.DataAnnotations.ValidationException ex)
+        {
+            // 1.4 — Pts inconsistente con sus componentes → 400
+            await tx.RollbackAsync();
+            return BadRequest(new { error = ex.Message });
+        }
+        catch
+        {
+            // Cualquier fallo posterior (p. ej. playoffs) revierte TODO: la planilla no
+            // queda confirmada ni el partido FINISHED.
+            await tx.RollbackAsync();
+            throw;
+        }
 
         return Ok(new
         {
