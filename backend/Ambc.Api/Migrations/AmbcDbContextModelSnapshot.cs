@@ -130,6 +130,29 @@ namespace Ambc.Api.Migrations
                     b.ToTable("GameReferees");
                 });
 
+            modelBuilder.Entity("Ambc.Api.Models.GroqUsage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("integer");
+
+                    b.Property<DateOnly>("Fecha")
+                        .HasColumnType("date");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Fecha")
+                        .IsUnique();
+
+                    b.ToTable("GroqUsages");
+                });
+
             modelBuilder.Entity("Ambc.Api.Models.Notification", b =>
                 {
                     b.Property<Guid>("Id")
