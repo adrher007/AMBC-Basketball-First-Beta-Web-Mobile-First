@@ -16,3 +16,7 @@ backend/Ambc.Api/uploads/
 # Entorno / secretos locales
 *.env
 appsettings.Development.json
+
+# Backups locales de base de datos (no versionar)
+backup_*.sql
+backup_err.txt
