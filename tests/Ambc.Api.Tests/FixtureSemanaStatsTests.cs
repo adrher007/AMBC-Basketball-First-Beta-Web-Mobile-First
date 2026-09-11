@@ -38,14 +38,10 @@ public class FixtureSemanaStatsTests
     }
 
     /// <summary>
-    /// HALLAZGO (bug preexistente): GenerateRoundRobin(isReturnLeg: true) NO invierte
-    /// la localía respecto de la ida. En FixtureGenerator.cs:41 el flip de la vuelta
-    /// es el complementario del de la ida, así que la vuelta repite exactamente los
-    /// mismos pares (Home, Away): no hay ida/vuelta real.
-    /// Deshabilitado a la espera de decisión (la spec del fixture pide no tocarlo).
-    /// Fix propuesto (1 línea): en la vuelta invertir siempre el par → flip = isReturnLeg.
+    /// Ida/vuelta real (reglamento AMBC): la vuelta debe contener los pares invertidos.
+    /// En FixtureGenerator.cs el flip de la vuelta es el complemento del de la ida.
     /// </summary>
-    [Fact(Skip = "Bug preexistente: la vuelta repite la ida sin invertir localía")]
+    [Fact]
     public void Vuelta_invierte_la_localia_respecto_de_la_ida()
     {
         var equipos = Enumerable.Range(1, 9).Select(_ => Guid.NewGuid()).ToList();
@@ -56,8 +52,16 @@ public class FixtureSemanaStatsTests
         var paresIda = ida.SelectMany(r => r).Select(p => (p.Home, p.Away)).ToHashSet();
         var paresVuelta = vuelta.SelectMany(r => r).Select(p => (p.Home, p.Away)).ToHashSet();
 
-        // La vuelta debe contener las parejas invertidas
+        // La vuelta contiene las parejas invertidas (y ninguna igual que la ida)
         Assert.All(paresIda, p => Assert.Contains((p.Away, p.Home), paresVuelta));
+        Assert.Empty(paresIda.Intersect(paresVuelta));
+
+        // La ida reparte 36 localías (4 partidos × 9 rondas) y ningún equipo
+        // queda como local en todas las jornadas
+        var localesIda = ida.SelectMany(r => r).GroupBy(p => p.Home)
+            .ToDictionary(g => g.Key, g => g.Count());
+        Assert.Equal(36, localesIda.Values.Sum());
+        Assert.All(equipos, e => Assert.True(localesIda.GetValueOrDefault(e) < ida.Count));
     }
 
     [Fact]

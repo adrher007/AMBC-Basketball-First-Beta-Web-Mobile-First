@@ -37,8 +37,11 @@ public static class FixtureGenerator
                 var b = teamList[size - 1 - i];
                 if (a is null || b is null) continue;
 
-                // Alternar local/visitante para balance; invertir en la vuelta
-                var flip = isReturnLeg ? (round % 2 != 0) : (round % 2 == 1);
+                // Balance de localías: en la IDA se alterna por ronda.
+                // En la VUELTA se invierte siempre respecto de la ida → ida/vuelta REAL
+                // (reglamento AMBC). El flip de la vuelta debe ser el complemento del de
+                // la ida; antes era el mismo valor, así que la vuelta repetía la ida.
+                var flip = isReturnLeg ? (round % 2 == 0) : (round % 2 == 1);
                 if (flip)
                     roundPairs.Add((b.Value, a.Value));
                 else
