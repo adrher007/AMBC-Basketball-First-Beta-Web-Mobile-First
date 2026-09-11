@@ -163,6 +163,15 @@ public class Planilla
     public byte[] RowVersion { get; set; } = Array.Empty<byte>();
 }
 
+/// <summary>3.3 — Consumo diario de Groq por usuario (rate limiting).</summary>
+public class GroqUsage
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid UserId { get; set; }
+    public DateOnly Fecha { get; set; }
+    public int Count { get; set; }
+}
+
 public class PlayerGameStats
 {
     public Guid Id { get; set; } = Guid.NewGuid();

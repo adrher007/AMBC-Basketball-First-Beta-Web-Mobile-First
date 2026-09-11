@@ -17,6 +17,7 @@ public class AmbcDbContext : DbContext
     public DbSet<Referee> Referees => Set<Referee>();
     public DbSet<GameReferee> GameReferees => Set<GameReferee>();
     public DbSet<NotificationEvent> NotificationEvents => Set<NotificationEvent>();
+    public DbSet<GroqUsage> GroqUsages => Set<GroqUsage>();
     public DbSet<PlayoffSeries> PlayoffSeries => Set<PlayoffSeries>();
     public DbSet<Game> Games => Set<Game>();
     public DbSet<Planilla> Planillas => Set<Planilla>();
@@ -51,6 +52,10 @@ public class AmbcDbContext : DbContext
         // Idempotencia de notificaciones: game + tipo de evento + fecha + árbitro
         m.Entity<NotificationEvent>()
             .HasIndex(ne => new { ne.GameId, ne.Tipo, ne.Fecha, ne.RefereeId }).IsUnique();
+
+        // 3.3 — Consumo diario de Groq por usuario
+        m.Entity<GroqUsage>()
+            .HasIndex(g => new { g.UserId, g.Fecha }).IsUnique();
 
         m.Entity<Planilla>()
             .HasIndex(p => p.GameId).IsUnique();

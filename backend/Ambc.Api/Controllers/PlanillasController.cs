@@ -16,6 +16,9 @@ public class PlanillasController : ControllerBase
     private readonly GroqService _groq;
     private readonly IWebHostEnvironment _env;
 
+    /// <summary>3.3 — Máximo de procesamientos de planilla por usuario y día.</summary>
+    private const int LimiteGroqDiario = 20;
+
     public PlanillasController(AmbcDbContext db, GroqService groq, IWebHostEnvironment env)
     {
         _db = db;
@@ -161,6 +164,17 @@ public class PlanillasController : ControllerBase
         if (file is null || file.Length == 0)
             return BadRequest(new { error = "Imagen requerida." });
 
+        // 3.3 — Rate limiting de Groq: máximo 20 procesamientos por usuario y día
+        var userIdGroq = GetUserId() ?? Guid.Empty;
+        var hoyGroq = DateOnly.FromDateTime(DateTime.Now);
+        var usoGroq = await _db.GroqUsages
+            .FirstOrDefaultAsync(g => g.UserId == userIdGroq && g.Fecha == hoyGroq);
+        if (usoGroq is not null && usoGroq.Count >= LimiteGroqDiario)
+            return StatusCode(429, new
+            {
+                error = $"Límite diario de procesamiento de planillas alcanzado ({LimiteGroqDiario} por día). Intenta mañana."
+            });
+
         // Procesar imagen
         byte[] processed;
         using (var ms = new MemoryStream())
@@ -193,6 +207,15 @@ public class PlanillasController : ControllerBase
         try
         {
             var base64 = Convert.ToBase64String(processed);
+
+            // 3.3 — Consumir una unidad del límite diario de Groq
+            if (usoGroq is null)
+            {
+                usoGroq = new GroqUsage { UserId = userIdGroq, Fecha = hoyGroq, Count = 0 };
+                _db.GroqUsages.Add(usoGroq);
+            }
+            usoGroq.Count++;
+            await _db.SaveChangesAsync();
             // Modo completo si existe la imagen guía de referencia (formato oficial AMBC)
             var guiaPath = Path.Combine(_env.ContentRootPath, "Resources", "planilla_guia.jpg");
             var guiaBase64 = System.IO.File.Exists(guiaPath)
