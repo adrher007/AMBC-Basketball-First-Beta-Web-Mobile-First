@@ -1,0 +1,32 @@
+.home-season {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.home-season-card {
+  cursor: pointer;
+  transition: transform 150ms ease;
+}
+
+.home-season-card:active {
+  transform: scale(0.98);
+}
+
+.home-sub {
+  font-size: 10pt;
+  color: var(--text-secondary);
+  margin-top: 6px;
+}
+
+.home-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.home-chevron {
+  color: var(--text-secondary);
+}

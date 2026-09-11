@@ -1,0 +1,18 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Subidas (binarios de usuario)
+backend/Ambc.Api/uploads/
+
+# Entorno / secretos locales
+*.env
+appsettings.Development.json

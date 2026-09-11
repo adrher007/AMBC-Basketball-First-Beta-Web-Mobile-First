@@ -1,0 +1,81 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.arb-msg {
+  background: var(--accent-soft);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 10pt;
+}
+
+.arb-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.arb-main {
+  flex: 1;
+  min-width: 160px;
+}
+
+.arb-title {
+  font-size: 12pt;
+  font-weight: 600;
+}
+
+.arb-sub {
+  font-size: 10pt;
+  color: var(--text-secondary);
+}
+
+.arb-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.arb-preview {
+  margin-top: 12px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.arb-preview img {
+  width: 100%;
+  max-width: 400px;
+  display: block;
+}
+
+.arb-confirm {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.arb-scores {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+input[type='file'] {
+  margin-top: 12px;
+  font-size: 10pt;
+  color: var(--text-secondary);
+}

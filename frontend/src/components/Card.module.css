@@ -1,0 +1,11 @@
+.card {
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 16px;
+}
+
+.card:active {
+  transform: scale(0.98);
+  transition: transform 150ms ease;
+}

@@ -1,0 +1,89 @@
+:root {
+  /* Claro */
+  --background: #F9F9FB;
+  --surface: #FFFFFF;
+  --text: #1C1C1E;
+  --text-secondary: #6E6E73;
+  --border: #E2E8F0;
+  --accent: #007AFF;
+  --accent-soft: #EAF4FB;
+  --accent-text: #FFFFFF;
+  --inactive: #64748B;
+  --danger: #FF3B30;
+  --success: #34C759;
+}
+
+[data-theme='dark'] {
+  /* Oscuro OLED */
+  --background: #000000;
+  --surface: #111827;
+  --text: #F1F5F9;
+  --text-secondary: #94A3B8;
+  --border: #1F2937;
+  --accent: #38BDF8;
+  --accent-soft: #0C4A6E;
+  --accent-text: #000000;
+  --inactive: #64748B;
+  --danger: #FF453A;
+  --success: #32D74B;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+  background: var(--background);
+  color: var(--text);
+  font-size: 10.5pt;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  transition: background 200ms ease, color 200ms ease;
+}
+
+h1 { font-size: 22pt; font-weight: 700; margin: 0; }
+h2 { font-size: 14pt; font-weight: 600; margin: 0; }
+h3 { font-size: 12pt; font-weight: 600; margin: 0; }
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+}
+
+/* ===== Accesibilidad (Fase 17) ===== */
+
+/* Focus visible consistente para teclado/usuario */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Botones y enlaces: conservar enfoque sin doble anillo de navegador */
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Respetar usuarios que prefieren menos movimiento */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

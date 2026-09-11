@@ -1,0 +1,32 @@
+.state-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 48px 24px;
+  color: var(--text-secondary);
+}
+
+.state-text {
+  font-size: 11pt;
+}
+
+.state-retry {
+  border-radius: 12px;
+  min-height: 40px;
+  padding: 0 16px;
+  background: var(--accent);
+  color: var(--accent-text);
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.spin {
+  animation: states-spin 0.8s linear infinite;
+}
+
+@keyframes states-spin {
+  to { transform: rotate(360deg); }
+}
