@@ -69,6 +69,20 @@ tests/Ambc.Api.Tests/
 - **Ida y vuelta:** el generador round-robin produce la vuelta con la localía
   invertida respecto de la ida.
 
+## Deuda técnica aceptada
+
+| Ítem | Riesgo | Estado |
+|------|--------|--------|
+| **CSS Modules sin scope** (`vite.config.ts: css.modules.generateScopedName = name`) | **Footgun real.** Todas las clases CSS son globales, así que dos componentes pueden definir la misma clase y una pisa a la otra **sin ningún aviso**. Ya ocurrió: `AdminDashboard.module.css` define `.stats-grid` y el editor de planillas usaba el mismo nombre → la tabla se renderizó como 2 columnas de 198px en lugar de la grilla de 7 columnas. Se detectó solo mirando la pantalla en un navegador real. | **Aceptado** (no se corrige: activar el scope obligaría a reescribir todos los componentes). **Convención obligatoria: prefijar las clases por pantalla** (`arb-`, `plan-stats-`, `adm-`…) y verificar con `grep` que el nombre no exista antes de definirlo. |
+| `Game.Hora` como `string` | Sin validación de formato a nivel de tipo. | Aceptado |
+| `Game.Fase` como `string` | Ídem; un enum con `HasConversion` sería más seguro. | Aceptado |
+| `Notification.Destinatarios` como DSL de texto | Formato `TEAM:<id>` / `USER:<id>` parseado con strings. | Aceptado |
+| `PlayerGameStats.Reb/Ast/Stl/Blk/To` siempre en 0 | La planilla AMBC solo registra puntos; las columnas existen para futura expansión. | Aceptado |
+| Sin OpenAPI/Swagger | El contrato vive en `lib/types.ts` + DTOs. | Pendiente |
+| Sin health checks ni Serilog | No hay `/health`. | Pendiente |
+| PBKDF2 100k iteraciones | OWASP 2024 recomienda 600k. | Aceptado (riesgo bajo) |
+| BackgroundService sin lock distribuido | Solo falla con dos instancias del backend a la vez (hoy es una). | Aceptado |
+
 ## Aviso de seguridad conocido (`NU1903`)
 
 `dotnet test` reporta:

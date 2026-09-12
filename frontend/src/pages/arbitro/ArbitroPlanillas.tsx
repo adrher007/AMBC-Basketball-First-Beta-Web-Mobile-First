@@ -255,6 +255,14 @@ export default function ArbitroPlanillas() {
             next.pts = String((dosP ?? 0) * 2 + (tresP ?? 0) * 3 + (ft ?? 0));
           }
         }
+        // Si se edita Pts directamente, se limpia el desglose: el árbitro manda y
+        // además así no se envía una combinación inconsistente (el backend exige
+        // Pts == DosP×2 + TresP×3 + Ft cuando vienen componentes).
+        if (campo === 'pts') {
+          next.dosP = '';
+          next.tresP = '';
+          next.ft = '';
+        }
         return next;
       }),
     );
@@ -351,58 +359,58 @@ export default function ArbitroPlanillas() {
     return (
       <div className="arb-confirm">
         <h3>{titulo}</h3>
-        <div className="stats-grid">
-          <div className="stats-head">Dorsal</div>
-          <div className="stats-head">Nombre</div>
-          <div className="stats-head">Pts</div>
-          <div className="stats-head">DosP</div>
-          <div className="stats-head">TresP</div>
-          <div className="stats-head">Ft</div>
-          <div className="stats-head" />
+        <div className="plan-stats-grid">
+          <div className="plan-stats-head">Dorsal</div>
+          <div className="plan-stats-head">Nombre</div>
+          <div className="plan-stats-head">Pts</div>
+          <div className="plan-stats-head">DosP</div>
+          <div className="plan-stats-head">TresP</div>
+          <div className="plan-stats-head">Ft</div>
+          <div className="plan-stats-head" />
           {filas.map((f, i) => (
-            <div className="stats-row" key={`${lado}-${i}`}>
+            <div className="plan-stats-row" key={`${lado}-${i}`}>
               <input
-                className="stats-input"
+                className="plan-stats-input"
                 inputMode="numeric"
                 value={f.numero}
                 onChange={(e) => editarFila(lado, i, 'numero', e.target.value)}
                 placeholder="#"
               />
               <input
-                className="stats-input"
+                className="plan-stats-input"
                 value={f.nombre}
                 onChange={(e) => editarFila(lado, i, 'nombre', e.target.value)}
                 placeholder="Nombre"
               />
               <input
-                className="stats-input"
+                className="plan-stats-input"
                 inputMode="numeric"
                 value={f.pts}
                 onChange={(e) => editarFila(lado, i, 'pts', e.target.value)}
                 placeholder="—"
               />
               <input
-                className="stats-input"
+                className="plan-stats-input"
                 inputMode="numeric"
                 value={f.dosP}
                 onChange={(e) => editarFila(lado, i, 'dosP', e.target.value)}
                 placeholder="—"
               />
               <input
-                className="stats-input"
+                className="plan-stats-input"
                 inputMode="numeric"
                 value={f.tresP}
                 onChange={(e) => editarFila(lado, i, 'tresP', e.target.value)}
                 placeholder="—"
               />
               <input
-                className="stats-input"
+                className="plan-stats-input"
                 inputMode="numeric"
                 value={f.ft}
                 onChange={(e) => editarFila(lado, i, 'ft', e.target.value)}
                 placeholder="—"
               />
-              <button className="stats-del" type="button" onClick={() => quitarFila(lado, i)}>
+              <button className="plan-stats-del" type="button" onClick={() => quitarFila(lado, i)}>
                 ×
               </button>
             </div>
@@ -480,6 +488,8 @@ export default function ArbitroPlanillas() {
                 <div className="arb-sub">
                   Precargadas desde la planilla. Corrige dorsales, nombres y puntos; la
                   suma de puntos por equipo debe coincidir con el marcador final.
+                  Si editas Pts se limpia el desglose (DosP/TresP/Ft); si editas el
+                  desglose, Pts se recalcula (DosP×2 + TresP×3 + Ft).
                 </div>
                 {filasLocal.length === 0 && filasVisitante.length === 0 && (
                   <div className="arb-sub">

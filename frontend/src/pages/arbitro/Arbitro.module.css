@@ -82,7 +82,7 @@ input[type='file'] {
 
 /* ===== 3.1: tabla editable de estadísticas por jugador ===== */
 
-.stats-grid {
+.plan-stats-grid {
   display: grid;
   grid-template-columns: 46px minmax(80px, 1fr) 44px 44px 44px 44px 24px;
   gap: 6px;
@@ -92,17 +92,17 @@ input[type='file'] {
 }
 
 /* Las celdas de cada fila participan del grid del contenedor */
-.stats-row {
+.plan-stats-row {
   display: contents;
 }
 
-.stats-head {
+.plan-stats-head {
   font-size: 9pt;
   font-weight: 600;
   color: var(--text-secondary);
 }
 
-.stats-input {
+.plan-stats-input {
   width: 100%;
   min-width: 0;
   padding: 6px 8px;
@@ -114,12 +114,12 @@ input[type='file'] {
   font-size: 10pt;
 }
 
-.stats-input:focus {
+.plan-stats-input:focus {
   outline: none;
   border-color: var(--accent);
 }
 
-.stats-del {
+.plan-stats-del {
   border: none;
   background: transparent;
   color: var(--text-secondary);
