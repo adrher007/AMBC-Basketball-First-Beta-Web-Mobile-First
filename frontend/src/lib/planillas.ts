@@ -1,4 +1,5 @@
 import { api } from './api';
+import type { PlanillaDatosCorregidos } from './types';
 
 export interface ArbitroAsignado {
   id: string;
@@ -51,22 +52,9 @@ export const subirImagenPlanilla = (id: string, file: File) => {
 export const getPlanilla = (id: string) =>
   api.get<Planilla>(`/planillas/${id}`).then((r) => r.data);
 
-/** 3.1 — Versión del esquema del JSON de corrección. */
-export const SCHEMA_VERSION = 1;
-
-export interface JugadorCorregido {
-  numero: number;
-  nombre: string;
-  apellido: string;
-  /** Puntos totales del jugador (la planilla AMBC registra solo puntos). */
-  pts?: number;
-}
-
-export interface PlanillaDatosCorregidos {
-  schemaVersion: number;
-  jugadores_local: JugadorCorregido[];
-  jugadores_visitante: JugadorCorregido[];
-}
+// 3.1 — Los tipos del JSON de corrección viven en lib/types.ts
+export { SCHEMA_VERSION } from './types';
+export type { JugadorCorregido, PlanillaDatosCorregidos } from './types';
 
 export const confirmarPlanilla = (
   id: string,

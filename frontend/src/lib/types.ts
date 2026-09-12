@@ -124,3 +124,47 @@ export interface Notification {
   creadoEn: string;
   vista: boolean;
 }
+
+// ===== 3.1: corrección de estadísticas de la planilla =====
+
+/** Versión del esquema del JSON de corrección. */
+export const SCHEMA_VERSION = 1;
+
+/** Jugador dentro de `datosCorregidosJson` (contrato que consume StatsMapper). */
+export interface JugadorCorregido {
+  numero: number | null;
+  nombre: string;
+  apellido: string;
+  /** Puntos totales. Debe coincidir con `dos_p*2 + tres_p*3 + ft` si vienen los componentes. */
+  pts?: number | null;
+  dos_p?: number | null;
+  tres_p?: number | null;
+  ft?: number | null;
+}
+
+/** Payload que espera `POST /planillas/{id}/confirmar` en `datosCorregidosJson`. */
+export interface PlanillaDatosCorregidos {
+  schemaVersion: number;
+  jugadores_local: JugadorCorregido[];
+  jugadores_visitante: JugadorCorregido[];
+}
+
+/** JSON que devuelve Groq en `datosExtraidosJson` (solo las partes que usa la UI). */
+export interface PlanillaExtraida {
+  schemaVersion?: number;
+  teams?: {
+    A?: { name?: string | null; players?: { number?: number | null; name?: string | null }[] };
+    B?: { name?: string | null; players?: { number?: number | null; name?: string | null }[] };
+  };
+  scores?: {
+    execution?: {
+      cells?: {
+        team?: string | null;
+        player?: number | null;
+        points?: number | null;
+        isCrossed?: boolean | null;
+      }[];
+    };
+    final?: { A?: number | null; B?: number | null };
+  };
+}
