@@ -153,11 +153,6 @@ public static class StatsMapper
                     TresP = tresP,
                     Ft = ft,
                     Pts = pts,
-                    Reb = 0,
-                    Ast = 0,
-                    Stl = 0,
-                    Blk = 0,
-                    To = 0,
                 });
             }
         }

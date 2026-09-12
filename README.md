@@ -77,7 +77,6 @@ tests/Ambc.Api.Tests/
 | `Game.Hora` como `string` | Sin validación de formato a nivel de tipo. | Aceptado |
 | `Game.Fase` como `string` | Ídem; un enum con `HasConversion` sería más seguro. | Aceptado |
 | `Notification.Destinatarios` como DSL de texto | Formato `TEAM:<id>` / `USER:<id>` parseado con strings. | Aceptado |
-| `PlayerGameStats.Reb/Ast/Stl/Blk/To` siempre en 0 | La planilla AMBC solo registra puntos; las columnas existen para futura expansión. | Aceptado |
 | Sin OpenAPI/Swagger | El contrato vive en `lib/types.ts` + DTOs. | Pendiente |
 | Sin health checks ni Serilog | No hay `/health`. | Pendiente |
 | PBKDF2 100k iteraciones | OWASP 2024 recomienda 600k. | Aceptado (riesgo bajo) |

@@ -182,11 +182,6 @@ public class PlayerGameStats
     public int DosP { get; set; }
     public int TresP { get; set; }
     public int Ft { get; set; }
-    public int Reb { get; set; }
-    public int Ast { get; set; }
-    public int Stl { get; set; }
-    public int Blk { get; set; }
-    public int To { get; set; }
 }
 
 public class Standing

@@ -308,12 +308,6 @@ namespace Ambc.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<int>("Ast")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Blk")
-                        .HasColumnType("integer");
-
                     b.Property<int>("DosP")
                         .HasColumnType("integer");
 
@@ -329,17 +323,8 @@ namespace Ambc.Api.Migrations
                     b.Property<int>("Pts")
                         .HasColumnType("integer");
 
-                    b.Property<int>("Reb")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Stl")
-                        .HasColumnType("integer");
-
                     b.Property<Guid>("TeamId")
                         .HasColumnType("uuid");
-
-                    b.Property<int>("To")
-                        .HasColumnType("integer");
 
                     b.Property<int>("TresP")
                         .HasColumnType("integer");
