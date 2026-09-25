@@ -82,19 +82,29 @@ tests/Ambc.Api.Tests/
 | PBKDF2 100k iteraciones | OWASP 2024 recomienda 600k. | Aceptado (riesgo bajo) |
 | BackgroundService sin lock distribuido | Solo falla con dos instancias del backend a la vez (hoy es una). | Aceptado |
 
-## Aviso de seguridad conocido (`NU1903`)
+## Dependencia de SQLite en tests (`NU1903` — resuelto)
 
-`dotnet test` reporta:
+`Microsoft.EntityFrameworkCore.Sqlite` 10.0.0 arrastraba de forma transitiva
+`SQLitePCLRaw.lib.e_sqlite3` **2.1.11**, que empaqueta SQLite < 3.50.2 y está afectado por
+**CVE-2025-6965 / GHSA-2m69-gcr7-jv3q** (severidad alta: corrupción de memoria cuando el
+número de términos agregados supera el de columnas disponibles). En su momento el advisory
+no publicó versión parcheada, así que quedó como deuda aceptada.
 
+**Resuelto** fijando explícitamente el bundle en `tests/Ambc.Api.Tests.csproj`:
+
+```xml
+<PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
 ```
-warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known
-high severity vulnerability (GHSA-2m69-gcr7-jv3q)
-```
 
-- **Alcance: solo el proyecto de tests.** Es una dependencia transitiva de
-  `Microsoft.EntityFrameworkCore.Sqlite`, usada únicamente por
-  `tests/Ambc.Api.Tests` como base en memoria para las pruebas.
-- **Producción no está afectada:** el backend usa `Npgsql` (PostgreSQL) y no
-  referencia SQLite. Esa dependencia no se publica ni se despliega.
-- **Acción:** se puede subir de versión cuando haya un release parcheado de
-  `SQLitePCLRaw`; no bloquea el build ni los tests.
+Con eso el árbol de dependencias pasa a **`SQLite 3.53.4`** (≥ 3.50.2, parcheado) con
+`SQLitePCLRaw.core` / `.provider.e_sqlite3` / `.config.e_sqlite3` en 3.0.5, sin `NU1903`
+ni conflictos de versión (los tests siguen ejecutándose contra el binario nativo nuevo).
+
+Verificado: `dotnet build` → 0 warnings / 0 errors y `dotnet test` → **20/20**.
+
+> Si VS Code sigue mostrando la alerta tras el cambio, es caché del DesignTimeBuild:
+> `Ctrl+Shift+P` → **Developer: Reload Window** (o borrar `tests/Ambc.Api.Tests/obj/` y
+> rehacer el restore).
+
+Nota: esta dependencia es **solo del proyecto de tests**. El backend usa `Npgsql`
+(PostgreSQL) y no referencia SQLite.
