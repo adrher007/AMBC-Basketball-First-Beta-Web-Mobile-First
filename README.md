@@ -6,6 +6,18 @@ Aplicación web mobile-first para la Asociación Municipal de Baloncesto Cochaba
 - **Frontend:** React 19 + Vite + TypeScript (carpeta `frontend`)
 - **Tests:** xUnit + SQLite in-memory (carpeta `tests/Ambc.Api.Tests`)
 
+## Estado: primera beta pública
+
+Esta es la primera beta del proyecto (web **mobile-first**).
+
+> **Reconocimiento de imágenes de planillas: EN CONSTRUCCIÓN.**
+> La lectura automática de la planilla escaneada/fotografiada **todavía no funciona
+> correctamente por sí sola**: depende del modelo de visión de **Groq** para extraer
+> los datos (equipos, jugadores, casillas de puntuación y parciales). Sin la API key
+> de Groq, o cuando el modelo falla, el sistema entra en **modo degradado**: la
+> imagen se sube y todos los datos se cargan/verifican a mano.
+> No se debe confiar en el resultado automático como dato oficial.
+
 ## Requisitos
 
 - .NET SDK 10
