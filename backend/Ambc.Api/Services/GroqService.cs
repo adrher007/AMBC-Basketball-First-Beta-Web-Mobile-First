@@ -29,7 +29,8 @@ public class GroqService
         string? plantillaBase64 = null)
     {
         var apiKey = _cfg["Groq:ApiKey"];
-        if (string.IsNullOrWhiteSpace(apiKey))
+        // Placeholder del repo (sin clave real): se trata como "no configurada"
+        if (string.IsNullOrWhiteSpace(apiKey) || apiKey.StartsWith("REEMPLAZAR_", StringComparison.Ordinal))
             throw new InvalidOperationException("API key de Groq no configurada.");
 
         var model = _cfg["Groq:Model"] ?? "meta-llama/llama-4-scout-17b-16e-instruct";

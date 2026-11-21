@@ -11,7 +11,28 @@ Aplicación web mobile-first para la Asociación Municipal de Baloncesto Cochaba
 - .NET SDK 10
 - Node.js 22+
 - PostgreSQL 18 en `localhost:5432`, base `ambc`
-- Configurar la cadena de conexión y `Jwt:Key` en `backend/Ambc.Api/appsettings.json`
+
+### Configuración de secretos
+
+`backend/Ambc.Api/appsettings.json` está versionado y solo trae **placeholders**
+(`REEMPLAZAR_...`). No commitees claves reales.
+
+Definí los valores reales de una de estas dos formas:
+
+1. `backend/Ambc.Api/appsettings.Development.json` (está en `.gitignore`, se carga
+   con `ASPNETCORE_ENVIRONMENT=Development`, que es el perfil por defecto de
+   `dotnet run`): copiá las secciones `ConnectionStrings`, `Jwt` y `Groq` y poné
+   ahí los valores reales.
+2. Variables de entorno (sirven en cualquier entorno):
+
+   ```bash
+   ConnectionStrings__Default="Host=localhost;Port=5432;Database=ambc;Username=postgres;Password=..."
+   Jwt__Key="<clave de al menos 32 caracteres>"
+   Groq__ApiKey="gsk_..."
+   ```
+
+Sin `Groq:ApiKey` la extracción automática de planillas queda deshabilitada y la
+planilla se revisa a mano (modo degradado, no rompe la app).
 
 ## Ejecutar
 
